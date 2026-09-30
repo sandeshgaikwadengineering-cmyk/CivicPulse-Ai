@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal Authentication — CivicPulse AI</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #0F172A; }
+    .fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- TOP HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="index.html" class="flex items-center space-x-3">
+        <div class="p-2 bg-blue-600 rounded-lg text-white">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg text-slate-900 leading-none">CivicPulse AI</h1>
+          <p class="text-xs text-slate-500 mt-0.5">Civic Crisis Command Center</p>
+        </div>
+      </a>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex space-x-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-sm font-medium">
+        <a href="index.html" class="px-4 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">Home</a>
+        <a href="report.html" class="px-4 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">Report Emergency</a>
+        <a href="dashboard.html" class="px-4 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">Admin Dashboard</a>
+      </nav>
+
+      <!-- Live Clock & Status -->
+      <div class="flex items-center space-x-4">
+        <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>SYSTEM ONLINE</span>
+        </div>
+        <div id="live-clock" class="text-sm font-mono font-medium text-slate-600">--:--:--</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-md mx-auto px-4 py-12 w-full flex-grow flex flex-col justify-center">
+    
+    <!-- Toast / Alert Banner -->
+    <div id="login-alert" class="hidden mb-4 p-4 rounded-xl border bg-red-50 border-red-200 text-red-800 text-sm fade-in flex items-start gap-3">
+      <i data-lucide="alert-circle" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"></i>
+      <div>
+        <p class="font-bold">Authentication Failed</p>
+        <p class="text-xs mt-0.5 text-red-700" id="login-alert-msg">Invalid credentials provided.</p>
+      </div>
+    </div>
+
+    <div id="login-success" class="hidden mb-4 p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-800 text-sm fade-in flex items-start gap-3">
+      <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"></i>
+      <div>
+        <p class="font-bold">Access Granted</p>
+        <p class="text-xs mt-0.5 text-emerald-700">Redirecting to Admin Command Dashboard...</p>
+      </div>
+    </div>
+
+    <!-- Login Form Card -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 fade-in">
+      <div class="border-b border-slate-100 pb-4 text-center">
+        <div class="w-12 h-12 bg-blue-50 border border-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-600">
+          <i data-lucide="lock" class="w-6 h-6"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900">Operator Login</h2>
+        <p class="text-slate-500 text-xs mt-1">Authorized personnel access for Crisis Command Console</p>
+      </div>
+
+      <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+        
+        <!-- Role Selection -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Authorization Role *</label>
+          <select id="login-role" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-slate-50/30">
+            <option value="Municipal Controller">Municipal Emergency Controller</option>
+            <option value="Traffic Commander">Traffic Command Officer</option>
+            <option value="Disaster Response AI Agent">Disaster Response AI Supervisor</option>
+          </select>
+        </div>
+
+        <!-- Official Email -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Official ID / Email *</label>
+          <div class="relative">
+            <i data-lucide="mail" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+            <input type="email" id="login-email" required value="admin@civicpulse.gov" placeholder="admin@civicpulse.gov" class="w-full pl-10 pr-3.5 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-slate-50/30">
+          </div>
+        </div>
+
+        <!-- Access Key / Password -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Security Access Key *</label>
+          <div class="relative">
+            <i data-lucide="key" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+            <input type="password" id="login-password" required value="admin123" placeholder="••••••••" class="w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-slate-50/30">
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
+              <i data-lucide="eye" id="eye-icon" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition shadow-md flex justify-center items-center gap-2 text-sm mt-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i> Authenticate & Launch Console
+        </button>
+      </form>
+
+      <!-- Mock Credentials Note -->
+      <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center text-xs text-slate-500 space-y-0.5">
+        <p class="font-semibold text-slate-700">Demo Credentials Pre-filled:</p>
+        <p>Email: <code class="bg-slate-200 px-1 rounded text-slate-800">admin@civicpulse.gov</code></p>
+        <p>Password: <code class="bg-slate-200 px-1 rounded text-slate-800">admin123</code></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+    CivicPulse AI — AI Civic Crisis Command Center Portal
+  </footer>
+
+  <!-- JAVASCRIPT STATE LOGIC -->
+  <script>
+    // Live Clock
+    setInterval(() => {
+      document.getElementById('live-clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    // Toggle Password Visibility
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('login-password');
+      const eyeIcon = document.getElementById('eye-icon');
+
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        eyeIcon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        pwdInput.type = 'password';
+        eyeIcon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+
+    // Handle Login Submit
+    function handleLogin(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+      const role = document.getElementById('login-role').value;
+
+      const alertBox = document.getElementById('login-alert');
+      const successBox = document.getElementById('login-success');
+
+      if (email === "admin@civicpulse.gov" && password === "admin123") {
+        alertBox.classList.add('hidden');
+        successBox.classList.remove('hidden');
+
+        // Store session state
+        localStorage.setItem('civic_auth', JSON.stringify({
+          authenticated: true,
+          user: email,
+          role: role,
+          loginTime: new Date().toISOString()
+        }));
+
+        // Redirect to dashboard after 1 second
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1000);
+      } else {
+        document.getElementById('login-alert-msg').innerText = "Incorrect email or password. Use demo credentials provided below.";
+        alertBox.classList.remove('hidden');
+      }
+    }
+
+    // Initialize Lucide Icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>
