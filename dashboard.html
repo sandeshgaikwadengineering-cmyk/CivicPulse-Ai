@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Crisis Command Center — CivicPulse AI</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #0F172A; }
+    .fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- TOP HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="index.html" class="flex items-center space-x-3">
+        <div class="p-2 bg-blue-600 rounded-lg text-white">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg text-slate-900 leading-none">CivicPulse AI</h1>
+          <p class="text-xs text-slate-500 mt-0.5">Civic Crisis Command Center</p>
+        </div>
+      </a>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex space-x-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-sm font-medium">
+        <a href="index.html" class="px-4 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">Home</a>
+        <a href="report.html" class="px-4 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">Report Emergency</a>
+        <a href="dashboard.html" class="px-4 py-1.5 rounded-md bg-white text-slate-900 shadow-sm transition">Admin Dashboard</a>
+      </nav>
+
+      <!-- Live Clock & Status -->
+      <div class="flex items-center space-x-4">
+        <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>COMMAND ONLINE</span>
+        </div>
+        <div id="live-clock" class="text-sm font-mono font-medium text-slate-600">--:--:--</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow space-y-6 fade-in">
+    
+    <!-- Dashboard Heading -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900">Admin Incident Command Center</h2>
+        <p class="text-slate-500 text-sm mt-0.5">Real-time triage dashboard, priority meters, and AI recommended directives.</p>
+      </div>
+      <button onclick="resetData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg font-semibold transition flex items-center gap-1.5 border border-slate-200">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Mock Data
+      </button>
+    </div>
+
+    <!-- Stat Metrics Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Reports</p>
+        <p id="stat-total" class="text-2xl font-extrabold text-slate-900 mt-1">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-bold text-red-500 uppercase tracking-wider">Critical</p>
+        <p id="stat-critical" class="text-2xl font-extrabold text-red-600 mt-1">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-bold text-amber-500 uppercase tracking-wider">High Priority</p>
+        <p id="stat-high" class="text-2xl font-extrabold text-amber-600 mt-1">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-bold text-blue-500 uppercase tracking-wider">Med / Low</p>
+        <p id="stat-medium" class="text-2xl font-extrabold text-blue-600 mt-1">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-bold text-purple-500 uppercase tracking-wider">Active</p>
+        <p id="stat-active" class="text-2xl font-extrabold text-purple-600 mt-1">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-bold text-emerald-500 uppercase tracking-wider">Resolved</p>
+        <p id="stat-resolved" class="text-2xl font-extrabold text-emerald-600 mt-1">0</p>
+      </div>
+    </div>
+
+    <!-- Toolbar & Table Container -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      
+      <!-- Toolbar Filter Bar -->
+      <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row gap-3 justify-between items-center bg-slate-50/50">
+        <div class="relative w-full sm:w-80">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+          <input type="text" id="search-input" oninput="renderDashboard()" placeholder="Search location, incident ID..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <!-- Severity Filter -->
+          <select id="filter-severity" onchange="renderDashboard()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700">
+            <option value="ALL">All Severities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+
+          <!-- Status Filter -->
+          <select id="filter-status" onchange="renderDashboard()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700">
+            <option value="ALL">All Statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INVESTIGATING">Investigating</option>
+            <option value="RESOLVED">Resolved</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Incidents Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-600">
+          <thead class="bg-slate-100 text-slate-700 font-semibold text-xs uppercase border-b border-slate-200">
+            <tr>
+              <th class="p-3.5">Incident ID</th>
+              <th class="p-3.5">Location</th>
+              <th class="p-3.5">Category</th>
+              <th class="p-3.5">Severity</th>
+              <th class="p-3.5">Priority</th>
+              <th class="p-3.5">Reports</th>
+              <th class="p-3.5">Status</th>
+              <th class="p-3.5 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="incidents-table-body" class="divide-y divide-slate-200">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- INCIDENT DETAIL MODAL -->
+  <div id="incident-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 p-6 space-y-6 fade-in">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-start border-b border-slate-200 pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 id="modal-inc-id" class="text-xl font-bold text-slate-900">INC-101</h3>
+            <span id="modal-severity-badge"></span>
+          </div>
+          <p id="modal-location" class="text-sm text-slate-500 mt-1 flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Station Road</p>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- AI Reason Box -->
+      <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+        <div class="flex justify-between items-center">
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">AI Intelligence Analysis</p>
+          <span id="modal-confidence" class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800">Confidence: 93%</span>
+        </div>
+        <p id="modal-reason" class="text-sm text-slate-800 font-medium">--</p>
+        <div id="modal-human-flag" class="hidden p-2 bg-amber-50 border border-amber-200 text-amber-800 rounded text-xs font-semibold flex items-center gap-1.5 mt-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600"></i> Human Verification Required (Confidence &lt; 70%)
+        </div>
+      </div>
+
+      <!-- Recommended Action Box -->
+      <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl space-y-1.5">
+        <p class="text-xs font-bold text-blue-700 uppercase tracking-wider">AI Recommended Action Directive</p>
+        <p id="modal-action" class="text-sm text-blue-900 font-semibold">--</p>
+      </div>
+
+      <!-- Grouped Raw Reports List -->
+      <div class="space-y-3">
+        <h4 class="font-bold text-slate-900 text-sm">Grouped Citizen Reports (<span id="modal-report-count">0</span>)</h4>
+        <div id="modal-reports-list" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+    CivicPulse AI — AI Civic Crisis Command Center Portal
+  </footer>
+
+  <!-- JAVASCRIPT STATE LOGIC -->
+  <script>
+    // Initial State Store
+    let incidents = JSON.parse(localStorage.getItem('civic_incidents')) || [
+      {
+        id: 'INC-101',
+        location: 'Station Road',
+        category: 'Medical + Traffic',
+        severity: 'CRITICAL',
+        priority: 95,
+        confidence: 93,
+        reason: 'Emergency ambulance stuck in blocked traffic near main station road.',
+        recommended_action: 'Immediately notify traffic control and dispatch clearance squad to clear emergency route.',
+        status: 'ACTIVE',
+        reports: [
+          { id: 'REP-001', name: 'Rohan M.', desc: 'An ambulance is stuck because the main road is blocked by traffic.', time: '2026-09-30 14:10' },
+          { id: 'REP-002', name: 'Suresh B.', desc: 'Station road is completely blocked with heavy traffic.', time: '2026-09-30 14:12' }
+        ]
+      },
+      {
+        id: 'INC-102',
+        location: 'Sector 4 Park',
+        category: 'Waterlogging',
+        severity: 'LOW',
+        priority: 25,
+        confidence: 88,
+        reason: 'Minor water puddle accumulated near park boundary.',
+        recommended_action: 'Route to local municipal maintenance queue.',
+        status: 'ACTIVE',
+        reports: [
+          { id: 'REP-003', name: 'Amit K.', desc: 'Small water puddle near the park entrance.', time: '2026-09-30 15:00' }
+        ]
+      }
+    ];
+
+    function saveAndRender() {
+      localStorage.setItem('civic_incidents', JSON.stringify(incidents));
+      renderDashboard();
+    }
+
+    // Live Clock
+    setInterval(() => {
+      document.getElementById('live-clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    // Render Table and Metrics
+    function renderDashboard() {
+      const tbody = document.getElementById('incidents-table-body');
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const filterSev = document.getElementById('filter-severity').value;
+      const filterStat = document.getElementById('filter-status').value;
+
+      tbody.innerHTML = '';
+
+      let criticals = 0, highs = 0, mediumLows = 0, actives = 0, resolveds = 0, totalReports = 0;
+
+      incidents.forEach(inc => {
+        totalReports += inc.reports.length;
+        if (inc.severity === 'CRITICAL') criticals++;
+        if (inc.severity === 'HIGH') highs++;
+        if (inc.severity === 'MEDIUM' || inc.severity === 'LOW') mediumLows++;
+        if (inc.status === 'ACTIVE') actives++;
+        if (inc.status === 'RESOLVED') resolveds++;
+
+        // Filter Checks
+        const matchesSearch = inc.location.toLowerCase().includes(search) || inc.id.toLowerCase().includes(search) || inc.category.toLowerCase().includes(search);
+        const matchesSev = filterSev === 'ALL' || inc.severity === filterSev;
+        const matchesStat = filterStat === 'ALL' || inc.status === filterStat;
+
+        if (matchesSearch && matchesSev && matchesStat) {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition border-b border-slate-200';
+          tr.innerHTML = `
+            <td class="p-3.5 font-bold text-slate-900">${inc.id}</td>
+            <td class="p-3.5">${inc.location}</td>
+            <td class="p-3.5"><span class="px-2.5 py-1 rounded text-xs bg-slate-100 font-semibold text-slate-700">${inc.category}</span></td>
+            <td class="p-3.5">${getSeverityBadge(inc.severity)}</td>
+            <td class="p-3.5 font-mono font-extrabold text-slate-800">${inc.priority}/100</td>
+            <td class="p-3.5 font-semibold">${inc.reports.length}</td>
+            <td class="p-3.5">
+              <select onchange="updateStatus('${inc.id}', this.value)" class="text-xs px-2 py-1 border border-slate-300 rounded bg-white font-semibold focus:outline-none">
+                <option value="ACTIVE" ${inc.status === 'ACTIVE' ? 'selected' : ''}>ACTIVE</option>
+                <option value="INVESTIGATING" ${inc.status === 'INVESTIGATING' ? 'selected' : ''}>INVESTIGATING</option>
+                <option value="RESOLVED" ${inc.status === 'RESOLVED' ? 'selected' : ''}>RESOLVED</option>
+              </select>
+            </td>
+            <td class="p-3.5 text-right">
+              <button onclick="openModal('${inc.id}')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg font-semibold transition">View AI Detail</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+
+      // Update Metric Counters
+      document.getElementById('stat-total').innerText = totalReports;
+      document.getElementById('stat-critical').innerText = criticals;
+      document.getElementById('stat-high').innerText = highs;
+      document.getElementById('stat-medium').innerText = mediumLows;
+      document.getElementById('stat-active').innerText = actives;
+      document.getElementById('stat-resolved').innerText = resolveds;
+    }
+
+    function getSeverityBadge(sev) {
+      if (sev === 'CRITICAL') return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">CRITICAL</span>`;
+      if (sev === 'HIGH') return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">HIGH</span>`;
+      return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">${sev}</span>`;
+    }
+
+    function updateStatus(id, newStatus) {
+      const inc = incidents.find(i => i.id === id);
+      if (inc) {
+        inc.status = newStatus;
+        saveAndRender();
+      }
+    }
+
+    // Modal Operations
+    function openModal(id) {
+      const inc = incidents.find(i => i.id === id);
+      if (!inc) return;
+
+      document.getElementById('modal-inc-id').innerText = inc.id;
+      document.getElementById('modal-location').innerText = inc.location;
+      document.getElementById('modal-reason').innerText = inc.reason;
+      document.getElementById('modal-action').innerText = inc.recommended_action;
+      document.getElementById('modal-confidence').innerText = `Confidence: ${inc.confidence}%`;
+      document.getElementById('modal-report-count').innerText = inc.reports.length;
+
+      document.getElementById('modal-severity-badge').innerHTML = getSeverityBadge(inc.severity);
+
+      const flag = document.getElementById('modal-human-flag');
+      if (inc.confidence < 70) flag.classList.remove('hidden');
+      else flag.classList.add('hidden');
+
+      const list = document.getElementById('modal-reports-list');
+      list.innerHTML = '';
+      inc.reports.forEach(r => {
+        list.innerHTML += `
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1">
+            <div class="flex justify-between font-semibold text-slate-700">
+              <span>${r.name} (${r.id})</span>
+              <span class="text-slate-400">${r.time}</span>
+            </div>
+            <p class="text-slate-600">${r.desc}</p>
+          </div>
+        `;
+      });
+
+      document.getElementById('incident-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('incident-modal').classList.add('hidden');
+    }
+
+    function resetData() {
+      localStorage.removeItem('civic_incidents');
+      location.reload();
+    }
+
+    // Initialize
+    lucide.createIcons();
+    renderDashboard();
+  </script>
+</body>
+</html>
