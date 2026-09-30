@@ -8,6 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Leaflet Map CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #0F172A; }
@@ -82,7 +85,19 @@
           </div>
         </div>
       </div>
-
+<!-- INTERACTIVE INCIDENT MAP -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 my-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="map-pin" class="w-5 h-5 text-red-600"></i>
+          <h3 class="font-bold text-slate-900 text-base">Live Crisis Incident Map</h3>
+        </div>
+        <span class="text-xs text-slate-500 font-mono">Real-Time Geolocation Coordinates</span>
+      </div>
+      
+      <!-- Map Display Container -->
+      <div id="crisis-map" class="w-full h-72 rounded-xl border border-slate-200 z-10"></div>
+    </div>
       <!-- Quick Action Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition cursor-pointer" onclick="showView('report')">
@@ -599,5 +614,22 @@
     lucide.createIcons();
     showView('home');
   </script>
+<script>
+  // Initialize Leaflet Map
+  document.addEventListener("DOMContentLoaded", function() {
+    const map = L.map('crisis-map').setView([19.1663, 73.2358], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([19.1663, 73.2358]).addTo(map)
+      .bindPopup('<b>INC-101: Station Road</b><br><span style="color:red;">CRITICAL: Ambulance Stuck</span>')
+      .openPopup();
+
+    L.marker([19.1750, 73.2420]).addTo(map)
+      .bindPopup('<b>INC-102: Sector 4</b><br><span style="color:orange;">HIGH: Waterlogging</span>');
+  });
+</script>
 </body>
 </html>
