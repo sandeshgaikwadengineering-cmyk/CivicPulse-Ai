@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citizen Emergency Reporting Portal — CivicPulse AI</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #0F172A; }
+    .fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- TOP HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="index.html" class="flex items-center space-x-3">
+        <div class="p-2 bg-blue-600 rounded-lg text-white">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg text-slate-900 leading-none">CivicPulse AI</h1>
+          <p class="text-xs text-slate-500 mt-0.5">Civic Crisis Command Center</p>
+        </div>
+      </a>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex space-x-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-sm font-medium">
+        <a href="index.html" class="px-4 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">Home</a>
+        <a href="report.html" class="px-4 py-1.5 rounded-md bg-white text-slate-900 shadow-sm transition">Report Emergency</a>
+        <a href="dashboard.html" class="px-4 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">Admin Dashboard</a>
+      </nav>
+
+      <!-- Live Clock & Status -->
+      <div class="flex items-center space-x-4">
+        <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>SYSTEM ONLINE</span>
+        </div>
+        <div id="live-clock" class="text-sm font-mono font-medium text-slate-600">--:--:--</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-2xl mx-auto px-4 py-8 w-full flex-grow">
+    
+    <!-- Toast Notification Banner -->
+    <div id="toast-banner" class="hidden mb-6 p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-800 text-sm fade-in flex items-start gap-3">
+      <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"></i>
+      <div>
+        <p class="font-bold">Emergency Report Transmitted Successfully!</p>
+        <p class="text-xs mt-0.5 text-emerald-700" id="toast-message">Your report has been received and routed to the AI Triage engine.</p>
+      </div>
+    </div>
+
+    <!-- Error Banner -->
+    <div id="error-banner" class="hidden mb-6 p-4 rounded-xl border bg-red-50 border-red-200 text-red-800 text-sm fade-in flex items-start gap-3">
+      <i data-lucide="alert-circle" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"></i>
+      <div>
+        <p class="font-bold">Validation Error</p>
+        <p class="text-xs mt-0.5 text-red-700" id="error-message">Please fill in all required fields accurately.</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 fade-in">
+      <div class="border-b border-slate-100 pb-4">
+        <span class="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full uppercase tracking-wider">Citizen Channel</span>
+        <h2 class="text-2xl font-bold text-slate-900 mt-2">Submit Citizen Incident Report</h2>
+        <p class="text-slate-500 text-sm mt-1">Provide clear location and context to help AI analyze priority and dispatch aid.</p>
+      </div>
+
+      <form id="emergency-form" class="space-y-4" onsubmit="handleReportSubmit(event)">
+        
+        <!-- Reporter Name -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Reporter Full Name *</label>
+          <input type="text" id="reporter-name" required placeholder="e.g. Rahul Sharma" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-slate-50/30">
+        </div>
+
+        <!-- Problem Category -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Problem Category *</label>
+          <select id="problem-category" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-slate-50/30">
+            <option value="">Select Primary Issue Category</option>
+            <option value="Traffic & Road Blockage">Traffic & Road Blockage</option>
+            <option value="Medical Emergency">Medical Emergency</option>
+            <option value="Waterlogging / Flooding">Waterlogging / Flooding</option>
+            <option value="Infrastructure Failure">Infrastructure Failure / Fallen Tree</option>
+            <option value="Power Failure">Power Failure</option>
+          </select>
+        </div>
+
+        <!-- Location with GPS Trigger -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-sm font-medium text-slate-700">Incident Location / Landmark *</label>
+            <button type="button" onclick="simulateGPS()" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-semibold">
+              <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Auto-Detect GPS
+            </button>
+          </div>
+          <input type="text" id="report-location" required placeholder="e.g. Station Road, Sector 4" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-slate-50/30">
+        </div>
+
+        <!-- Situation Description -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Detailed Situation Description *</label>
+          <textarea id="report-description" required rows="4" placeholder="Describe the hazard, blocked roads, stranded vehicles, or injuries..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-slate-50/30"></textarea>
+          <p class="text-xs text-slate-400 mt-1">Minimum 10 characters required for accurate AI analysis.</p>
+        </div>
+
+        <!-- Image Upload Dropzone -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Optional Photo Evidence</label>
+          <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:bg-slate-50 transition cursor-pointer" onclick="document.getElementById('photo-upload').click()">
+            <i data-lucide="camera" class="w-6 h-6 text-slate-400 mx-auto mb-1"></i>
+            <p class="text-xs text-slate-600 font-medium">Click to upload image or drag and drop</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">PNG, JPG up to 5MB</p>
+            <input type="file" id="photo-upload" class="hidden" accept="image/*" onchange="previewImage(event)">
+          </div>
+          <div id="image-preview-container" class="hidden mt-2 flex items-center gap-2 p-2 bg-slate-100 rounded-lg">
+            <img id="image-preview" src="#" alt="Preview" class="w-12 h-12 object-cover rounded">
+            <span id="image-filename" class="text-xs text-slate-600 truncate max-w-[200px]">photo.jpg</span>
+            <button type="button" onclick="removeImage()" class="ml-auto text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition shadow-md flex justify-center items-center gap-2 text-sm mt-4">
+          <i data-lucide="send" class="w-4 h-4"></i> Transmit Emergency Report
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+    CivicPulse AI — AI Civic Crisis Command Center Portal
+  </footer>
+
+  <!-- JAVASCRIPT STATE LOGIC -->
+  <script>
+    // Live Clock
+    setInterval(() => {
+      document.getElementById('live-clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    // Auto GPS Simulation
+    function simulateGPS() {
+      document.getElementById('report-location').value = 'Station Road Underpass, Sector 4';
+    }
+
+    // Image Upload Handling
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('image-preview').src = e.target.result;
+          document.getElementById('image-filename').innerText = file.name;
+          document.getElementById('image-preview-container').classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeImage() {
+      document.getElementById('photo-upload').value = '';
+      document.getElementById('image-preview-container').classList.add('hidden');
+    }
+
+    // Heuristics AI Triage Engine
+    function analyzeReportAI(desc, category) {
+      const lower = desc.toLowerCase();
+      let severity = 'LOW';
+      let priority = 25;
+      let confidence = 88;
+      let reason = 'Minor civic hazard logged.';
+      let action = 'Route to local municipal queue.';
+
+      if (lower.includes('ambulance') || lower.includes('critical') || lower.includes('stuck')) {
+        severity = 'CRITICAL';
+        priority = 95;
+        confidence = 94;
+        reason = 'Emergency vehicle or critical life hazard flagged.';
+        action = 'Alert emergency services and clear dispatch route immediately.';
+      } else if (lower.includes('waterlogging') || lower.includes('traffic') || lower.includes('blockage') || lower.includes('tree')) {
+        severity = 'HIGH';
+        priority = 75;
+        confidence = 85;
+        reason = 'Substantial traffic or water blockage identified.';
+        action = 'Notify traffic police and local emergency clearance team.';
+      } else if (lower.includes('weird') || lower.includes('something')) {
+        severity = 'LOW';
+        priority = 20;
+        confidence = 55;
+        reason = 'Ambiguous wording provided in submission.';
+        action = 'Manual human verification required before dispatch.';
+      }
+
+      return { category, severity, priority, confidence, reason, action };
+    }
+
+    // Handle Form Submit & Save to LocalStorage
+    function handleReportSubmit(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('reporter-name').value.trim();
+      const category = document.getElementById('problem-category').value;
+      const location = document.getElementById('report-location').value.trim();
+      const desc = document.getElementById('report-description').value.trim();
+
+      // Input Validation
+      if (!location || desc.length < 10) {
+        document.getElementById('error-message').innerText = 'Please provide a valid location and description (min 10 characters).';
+        document.getElementById('error-banner').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('error-banner').classList.add('hidden');
+
+      const aiResult = analyzeReportAI(desc, category);
+      let stateIncidents = JSON.parse(localStorage.getItem('civic_incidents')) || [];
+
+      // Duplicate Detection Matching
+      let matchedIncident = stateIncidents.find(inc => 
+        inc.location.toLowerCase().includes(location.toLowerCase()) || 
+        location.toLowerCase().includes(inc.location.toLowerCase())
+      );
+
+      const reportObj = {
+        id: 'REP-' + Math.floor(1000 + Math.random() * 9000),
+        name,
+        desc,
+        time: new Date().toLocaleString()
+      };
+
+      let assignedIncidentId = '';
+
+      if (matchedIncident) {
+        matchedIncident.reports.push(reportObj);
+        if (aiResult.priority > matchedIncident.priority) {
+          matchedIncident.priority = aiResult.priority;
+          matchedIncident.severity = aiResult.severity;
+        }
+        assignedIncidentId = matchedIncident.id;
+      } else {
+        assignedIncidentId = 'INC-' + Math.floor(100 + Math.random() * 900);
+        stateIncidents.unshift({
+          id: assignedIncidentId,
+          location,
+          category: aiResult.category,
+          severity: aiResult.severity,
+          priority: aiResult.priority,
+          confidence: aiResult.confidence,
+          reason: aiResult.reason,
+          recommended_action: aiResult.action,
+          status: 'ACTIVE',
+          reports: [reportObj]
+        });
+      }
+
+      // Save to localStorage
+      localStorage.setItem('civic_incidents', JSON.stringify(stateIncidents));
+
+      // Show Confirmation Toast
+      document.getElementById('toast-message').innerText = `Report assigned Ticket #${reportObj.id} and grouped under Incident #${assignedIncidentId} (${aiResult.severity} Severity).`;
+      document.getElementById('toast-banner').classList.remove('hidden');
+
+      // Reset form
+      document.getElementById('emergency-form').reset();
+      removeImage();
+
+      // Smooth scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Initialize Lucide Icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>
