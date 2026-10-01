@@ -614,6 +614,46 @@
     lucide.createIcons();
     showView('home');
   </script>
+  <!-- FLOATING AI CHATBOT WIDGET -->
+<div id="ai-chat-widget" class="fixed bottom-5 right-5 z-50 flex flex-col items-end font-sans">
+  <!-- Chat Window -->
+  <div id="chat-box" class="hidden w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden mb-3 transition-all duration-300">
+    <!-- Header -->
+    <div class="bg-slate-900 text-white p-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+        <span class="font-bold text-sm tracking-wide">CivicPulse AI Assistant</span>
+      </div>
+      <button onclick="toggleChat()" class="text-slate-400 hover:text-white transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+    
+    <!-- Messages Body -->
+    <div id="chat-messages" class="h-64 p-3.5 overflow-y-auto space-y-3 bg-slate-50 text-xs">
+      <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm max-w-[85%] text-slate-700">
+        👋 Hello! I am your AI Emergency Dispatch Assistant. Describe the incident or upload details to report immediately.
+      </div>
+    </div>
+
+    <!-- Input Box -->
+    <div class="p-2.5 border-t border-slate-200 bg-white flex items-center space-x-2">
+      <input type="text" id="chat-input" placeholder="Type emergency details..." 
+             class="flex-1 text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+             onkeypress="handleKeyPress(event)">
+      <button onclick="sendChatMessage()" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition">
+        <i data-lucide="send" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toggle Button -->
+  <button onclick="toggleChat()" class="bg-blue-600 hover:bg-blue-700 text-white p-3.5 rounded-full shadow-xl flex items-center space-x-2 transition transform hover:scale-105">
+    <i data-lucide="bot" class="w-6 h-6"></i>
+    <span class="text-xs font-semibold pr-1 hidden sm:inline">AI Assistant</span>
+  </button>
+</div>
+
 <script>
   // Initialize Leaflet Map
   document.addEventListener("DOMContentLoaded", function() {
